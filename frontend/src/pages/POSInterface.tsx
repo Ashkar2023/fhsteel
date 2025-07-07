@@ -1383,13 +1383,20 @@ const POSInterface: React.FC = () => {
                                   type="number"
                                   value={item.price}
                                   onChange={(e) => {
-                                    const newPrice = parseFloat(e.target.value);
+                                    const value = e.target.value;
+                                    if (value === "") {
+                                      setCart((prevCart) =>
+                                        prevCart.map((cartItem) =>
+                                          cartItem.id === item.id ? { ...cartItem, price: 0 } : cartItem
+                                        )
+                                      );
+                                      return;
+                                    }
+                                    const newPrice = parseFloat(value);
                                     if (!isNaN(newPrice) && newPrice >= 0) {
                                       setCart((prevCart) =>
                                         prevCart.map((cartItem) =>
-                                          cartItem.id === item.id
-                                            ? { ...cartItem, price: newPrice }
-                                            : cartItem
+                                          cartItem.id === item.id ? { ...cartItem, price: newPrice } : cartItem
                                         )
                                       );
                                     }
