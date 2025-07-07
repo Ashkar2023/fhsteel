@@ -998,7 +998,7 @@ const POSInterface: React.FC = () => {
                     : "text-gray-600 hover:text-gray-800"
                 }`}
               >
-                Hotel
+                Suppliers
               </button>
             </div>
             <div className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">

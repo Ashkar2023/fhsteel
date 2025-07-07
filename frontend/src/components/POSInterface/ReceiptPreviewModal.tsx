@@ -153,7 +153,6 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
   saleDate,
   autoDownloadPDF = false,
 }) => {
-  const { branch } = useAuth()
   const receiptRef = useRef<HTMLDivElement>(null);
   const printStylesRef = useRef<HTMLStyleElement | null>(null);
   const hasAutoDownloaded = useRef(false);
@@ -368,9 +367,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
           </head>
           <body>
             <div class="receipt-content">
-              <div class="section text-center text-bold">${branch?.name || "Trade App"}</div>
-              <div class="text-center">${branch?.address || ""}</div>
-              <div class="text-center">${branch?.phone || ""}</div>
+              <div class="section text-center text-bold">Scrap</div>
               <div class="section-header flex">
                 <span>Bill No: ${saleId}</span>
                 <span>Date: ${formattedDate}</span>
@@ -543,6 +540,14 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
     }
   };
 
+  // Replace branch usage with static details for preview
+  const staticBranch = {
+    name: 'F Steel Traders',
+    address: "Thrikkakara, Thoppil, pipeline, 682021",
+    phone: "9847801930",
+    gst: "32CVHPS9117C2ZL"
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-4 w-full max-w-md">
@@ -575,7 +580,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
             saleType={saleType}
             customTotalPrice={customTotalPrice}
             saleDate={saleDate}
-            branch={branch || { name: "Trade App", address: "", phone: "" }}
+            branch={staticBranch}
           />
         </div>
 

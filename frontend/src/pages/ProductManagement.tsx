@@ -489,7 +489,7 @@ const ProductManagement: React.FC = () => {
                   >
                     <option value="">Select unit type</option>
                     <option value="pcs">pcs</option>
-                    {/* <option value="kg">kg</option> */}
+                    <option value="kg">kg</option>
                   </select>
                 </div>
               </div>

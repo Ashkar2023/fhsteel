@@ -206,8 +206,11 @@ export class ThermalPrinterService {
       >
         {/* Header */}
         <Text align="center" bold size={{ width: 1, height: 1 }}>
-          PKS TRADERS
+          F Steel Traders
         </Text>
+        <Text align="center">Thrikkakara, Thoppil, pipeline, 682021</Text>
+        <Text align="center">9847801930</Text>
+        <Text align="center">GST: 32CVHPS9117C2ZL</Text>
         <Line />
 
         <Text align="center">Bill No: {saleId}</Text>

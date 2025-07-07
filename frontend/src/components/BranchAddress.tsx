@@ -102,12 +102,12 @@ const BranchAddress: React.FC = () => {
 
   return (
     <div className="relative">
-      <button
+      {/* <button
         className="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2 hover:bg-blue-700 transition-colors w-full md:w-auto"
         onClick={() => setIsModalOpen(true)}
       >
         Manage Branches
-      </button>
+      </button> */}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[10] p-4">
