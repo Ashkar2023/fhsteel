@@ -110,7 +110,7 @@ const ProductManagement: React.FC = () => {
     retailPrice: "1", // Default value to pass validation
     wholeSalePrice: "1", // Default value to pass validation
     barcode: "", // Default value
-    lowStockThreshold: "10", // Default value
+    lowStockThreshold: "1", // Default value
     unitType: "",
     description: "",
   });
@@ -259,7 +259,7 @@ const ProductManagement: React.FC = () => {
         retailPrice: "1", // Send as string to pass validation
         wholeSalePrice: "1", // Send as string to pass validation
         barcode: "", // Send empty string instead of null
-        lowStockThreshold: "10", // Send as string to pass validation
+        lowStockThreshold: "1", // Send as string to pass validation
         stock: "0", // Send as string to pass validation
         active: true,
         isDeleted: false
@@ -341,7 +341,7 @@ const ProductManagement: React.FC = () => {
       retailPrice: "1", // Default value to pass validation
       wholeSalePrice: "1", // Default value to pass validation
       barcode: "", // Default value
-      lowStockThreshold: "10", // Default value
+      lowStockThreshold: "1", // Default value
       unitType: "",
       description: "",
     });
