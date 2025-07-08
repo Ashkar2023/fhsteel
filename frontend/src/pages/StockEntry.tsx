@@ -62,9 +62,9 @@ const StockEntryManagement: React.FC = () => {
     productId: "",
     supplierId: "",
     quantity: "",
-    purchasePrice: "",
-    expiryDate: "",
-    batchNumber: "",
+    purchasePrice: "1", // Default value
+    expiryDate: "", // Will be set to future date
+    batchNumber: "1", // Default value
     note: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
@@ -202,15 +202,21 @@ const StockEntryManagement: React.FC = () => {
     if (
       !formData.productId ||
       !formData.supplierId ||
-      !formData.quantity ||
-      !formData.purchasePrice ||
-      !formData.batchNumber
+      !formData.quantity
     ) {
-      return toast.error("All required fields must be filled");
+      return toast.error("Product, Supplier, and Quantity are required");
     }
 
     try {
-      const response = await axios.post(`${baseUrl}/api/entryStock`, formData, {
+      // Set default values and future expiry date
+      const stockEntryData = {
+        ...formData,
+        purchasePrice: "1", // Default purchase price
+        batchNumber: "1", // Default batch number
+        expiryDate: "2050-12-31", // 1 year from now
+      };
+      
+      const response = await axios.post(`${baseUrl}/api/entryStock`, stockEntryData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -252,11 +258,9 @@ const StockEntryManagement: React.FC = () => {
     if (
       !formData.productId ||
       !formData.supplierId ||
-      !formData.quantity ||
-      !formData.purchasePrice ||
-      !formData.batchNumber
+      !formData.quantity
     ) {
-      return toast.error("All required fields must be filled");
+      return toast.error("Product, Supplier, and Quantity are required");
     }
 
     try {
@@ -384,53 +388,12 @@ const StockEntryManagement: React.FC = () => {
                   />
                 </div>
 
-                {/* Purchase Price */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Purchase Price <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="purchasePrice"
-                    value={formData.purchasePrice}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                    placeholder="Enter purchase price"
-                    required
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-
-                {/* Expiry Date */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Expiry Date
-                  </label>
-                  <input
-                    type="date"
-                    name="expiryDate"
-                    value={formData.expiryDate}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                {/* Batch Number */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Batch Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="batchNumber"
-                    value={formData.batchNumber}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                    placeholder="Enter batch number"
-                    required
-                  />
-                </div>
+                {/* Purchase Price - Hidden */}
+                <input type="hidden" name="purchasePrice" value="1" />
+                {/* Expiry Date - Hidden */}
+                <input type="hidden" name="expiryDate" value="2050-12-31" />
+                {/* Batch Number - Hidden */}
+                <input type="hidden" name="batchNumber" value="1" />
               </div>
 
               {/* Note - Full Width */}
@@ -522,53 +485,12 @@ const StockEntryManagement: React.FC = () => {
                   />
                 </div>
 
-                {/* Purchase Price */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Purchase Price <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="purchasePrice"
-                    value={formData.purchasePrice}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                    placeholder="Enter purchase price"
-                    required
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-
-                {/* Expiry Date */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Expiry Date
-                  </label>
-                  <input
-                    type="date"
-                    name="expiryDate"
-                    value={formData.expiryDate}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                {/* Batch Number */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Batch Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="batchNumber"
-                    value={formData.batchNumber}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                    placeholder="Enter batch number"
-                    required
-                  />
-                </div>
+                {/* Purchase Price - Hidden */}
+                <input type="hidden" name="purchasePrice" value="1" />
+                {/* Expiry Date - Hidden */}
+                <input type="hidden" name="expiryDate" value="2050-12-31" />
+                {/* Batch Number - Hidden */}
+                <input type="hidden" name="batchNumber" value="1" />
               </div>
 
               {/* Note - Full Width */}

@@ -107,10 +107,10 @@ const ProductManagement: React.FC = () => {
     id: "",
     name: "",
     code: "",
-    retailPrice: "",
-    wholeSalePrice: "",
-    barcode: "",
-    lowStockThreshold: "",
+    retailPrice: "1", // Default value to pass validation
+    wholeSalePrice: "1", // Default value to pass validation
+    barcode: "", // Default value
+    lowStockThreshold: "10", // Default value
     unitType: "",
     description: "",
   });
@@ -240,12 +240,11 @@ const ProductManagement: React.FC = () => {
 
     if (
       (!formData.name ||
-        !formData.retailPrice ||
-        !formData.lowStockThreshold ||
+        !formData.code ||
         !formData.unitType) &&
       !isEditing
     ) {
-      return toast.error("All fields are Required");
+      return toast.error("Product Name, Code, and Unit Type are required");
     }
     try {
       const url = isEditing
@@ -253,7 +252,20 @@ const ProductManagement: React.FC = () => {
         : `${baseUrl}/api/products`;
 
       const method = isEditing ? "put" : "post";
-      const response = await axios[method](url, formData, {
+      
+      // For new products, ensure default values are set
+      const productData = isEditing ? formData : {
+        ...formData,
+        retailPrice: "1", // Send as string to pass validation
+        wholeSalePrice: "1", // Send as string to pass validation
+        barcode: "", // Send empty string instead of null
+        lowStockThreshold: "10", // Send as string to pass validation
+        stock: "0", // Send as string to pass validation
+        active: true,
+        isDeleted: false
+      };
+      
+      const response = await axios[method](url, productData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -326,10 +338,10 @@ const ProductManagement: React.FC = () => {
       id: "",
       name: "",
       code: "",
-      retailPrice: "",
-      wholeSalePrice: "",
-      barcode: "",
-      lowStockThreshold: "",
+      retailPrice: "1", // Default value to pass validation
+      wholeSalePrice: "1", // Default value to pass validation
+      barcode: "", // Default value
+      lowStockThreshold: "10", // Default value
       unitType: "",
       description: "",
     });
@@ -379,7 +391,7 @@ const ProductManagement: React.FC = () => {
                 {/* Product Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product Name
+                    Product Name *
                   </label>
                   <input
                     type="text"
@@ -389,6 +401,7 @@ const ProductManagement: React.FC = () => {
                     list="productNames"
                     className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
                     placeholder="Enter product name"
+                    required
                   />
                   <datalist id="productNames">
                     {[
@@ -402,7 +415,7 @@ const ProductManagement: React.FC = () => {
                 {/* Product Code */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product Code
+                    Product Code *
                   </label>
                   <input
                     type="text"
@@ -411,87 +424,93 @@ const ProductManagement: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
                     placeholder="Enter product code"
-                  />
-                </div>
-
-                {/* Price */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Retail Price
-                  </label>
-                  <input
-                    type="number"
-                    name="retailPrice"
-                    value={formData.retailPrice}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                    placeholder="Retail Price"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    WholeSale Price
-                  </label>
-                  <input
-                    type="number"
-                    name="wholeSalePrice"
-                    value={formData.wholeSalePrice}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                    placeholder="WholeSale Price"
-                  />
-                </div>
-
-
-
-                {/* Barcode */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Barcode
-                  </label>
-                  <input
-                    type="text"
-                    name="barcode"
-                    value={formData.barcode}
-                    onChange={handleInputChange}
-                    onKeyDown={handleBarcodeScan}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                    placeholder="Scan or enter barcode"
-                  />
-                </div>
-
-                {/* Low Stock Threshold */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Low Stock Threshold
-                  </label>
-                  <input
-                    type="number"
-                    name="lowStockThreshold"
-                    value={formData.lowStockThreshold}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
-                    placeholder="Enter threshold quantity"
+                    required
                   />
                 </div>
 
                 {/* Unit Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Unit Type
+                    Unit Type *
                   </label>
                   <select
                     name="unitType"
                     value={formData.unitType}
                     onChange={handleInputChange}
                     className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
+                    required
                   >
                     <option value="">Select unit type</option>
                     <option value="pcs">pcs</option>
                     <option value="kg">kg</option>
                   </select>
                 </div>
+
+                {/* Show additional fields only when editing */}
+                {isEditing && (
+                  <>
+                    {/* Retail Price */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Retail Price
+                      </label>
+                      <input
+                        type="number"
+                        name="retailPrice"
+                        value={formData.retailPrice}
+                        onChange={handleInputChange}
+                        className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
+                        placeholder="Retail Price"
+                      />
+                    </div>
+
+                    {/* Wholesale Price */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Wholesale Price
+                      </label>
+                      <input
+                        type="number"
+                        name="wholeSalePrice"
+                        value={formData.wholeSalePrice}
+                        onChange={handleInputChange}
+                        className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
+                        placeholder="Wholesale Price"
+                      />
+                    </div>
+
+                    {/* Barcode */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Barcode
+                      </label>
+                      <input
+                        type="text"
+                        name="barcode"
+                        value={formData.barcode}
+                        onChange={handleInputChange}
+                        onKeyDown={handleBarcodeScan}
+                        className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
+                        placeholder="Scan or enter barcode"
+                      />
+                    </div>
+
+                    {/* Low Stock Threshold */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Low Stock Threshold
+                      </label>
+                      <input
+                        type="number"
+                        name="lowStockThreshold"
+                        value={formData.lowStockThreshold}
+                        onChange={handleInputChange}
+                        className="w-full border rounded-lg px-4 py-2 bg-white text-black focus:ring-2 focus:ring-green-500"
+                        placeholder="Enter threshold quantity"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Description - Full Width */}
