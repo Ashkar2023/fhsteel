@@ -95,7 +95,7 @@ const POSInterface: React.FC = () => {
     null
   );
   const [saleType, setSaleType] = useState<"retail" | "wholeSale" | "hotel">(
-    "retail"
+    "wholeSale"
   );
   const [barcode, setBarcode] = useState<string>("");
   const [scanning, setScanning] = useState<boolean>(false);
@@ -266,7 +266,7 @@ const POSInterface: React.FC = () => {
     setShowReceipt(false);
     setIsPreviewOpen(false);
     setSelectedCustomer(null);
-    setSaleType("retail");
+    setSaleType("wholeSale");
     setScanning(false);
     setBarcode("");
     setSearchTerm("");
@@ -441,9 +441,9 @@ const POSInterface: React.FC = () => {
   };
 
   const createSale = async () => {
-    if (!isCartValid()) return toast.error("Cart is invalid");
-    if (localPayments.some((p) => p.method === "debt" && !selectedCustomer))
-      return toast.error("Please select a customer for debt payment");
+    if (!isCartValid()) return toast.error('Cart is empty or invalid');
+    const total = customTotalPrice ?? cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const payments = [{ method: 'cash', amount: total }];
 
     try {
       const saleData = {
@@ -453,7 +453,7 @@ const POSInterface: React.FC = () => {
           price: item.price,
           total: item.price * item.quantity,
         })),
-        payments: localPayments,
+        payments: payments,
         customerId: selectedCustomer?.id || null,
         saleType,
         ReceivedAmount: totalPaid,
@@ -895,6 +895,17 @@ const POSInterface: React.FC = () => {
       }
     }
   }, [cartSelectedIndex]);
+
+  // Set default payment to total bill amount as cash whenever cart changes
+  useEffect(() => {
+    const total = customTotalPrice ?? cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    if (cart.length > 0 && total > 0) {
+      setLocalPayments([{ method: 'cash', amount: total }]);
+    } else {
+      setLocalPayments([]);
+    }
+    // eslint-disable-next-line
+  }, [cart, customTotalPrice]);
 
   return (
     <div className="sm:px-4 mt-10 max-h-screen flex flex-col space-y-4 overflow-hidden">
@@ -1739,139 +1750,40 @@ const POSInterface: React.FC = () => {
             </div>
 
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-2">Payment Methods</h3>
-              <div className="space-y-4">
-                {localPayments.map((payment, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div className="flex flex-col">
-                      <select
-                        value={payment.method}
-                        onChange={(e) =>
-                          handleMethodChange(index, e.target.value)
-                        }
-                        className="border rounded px-2 py-1 payment-input"
-                      >
-                        {availablePaymentOptions.map((option) => (
-                          <option key={option.method} value={option.method}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="text-[10px] text-gray-500 ml-1 mt-0.5">
-                        ⬅️ ➡️ change payment methods
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col">
-                      <input
-                        type="number"
-                        value={payment.amount}
-                        onChange={(e) =>
-                          handleAmountChange(index, e.target.value)
-                        }
-                        className="border rounded px-2 py-1 w-24 payment-input"
-                        min="0"
-                        step="0.01"
-                      />
-                      <span className="text-[10px] text-gray-500 ml-1 mt-0.5">
-                        🔼 🔽 change fields
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => removePayment(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-
-                <button
-                  onClick={addPayment}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 transition duration-200 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
-                >
-                  + Add Payment Method{" "}
-                  <span className="text-xs text-gray-500">(or press 'a')</span>
-                </button>
-              </div>
-              <div className="mt-2">
-                <p>Total Paid: ₹{totalPaid.toFixed(2)}</p>
-                {selectedCustomer === null ? (
-                  <p
-                    className={
-                      totalPaid === totalPrice
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }
-                  >
-                    {totalPaid === totalPrice
-                      ? "Payment matches total"
-                      : "Payment does not match total"}
-                  </p>
-                ) : (
-                  <p
-                    className={
-                      totalPaid === totalPrice
-                        ? "text-green-500"
-                        : totalPaid < totalPrice
-                        ? "text-orange-500"
-                        : "text-blue-500"
-                    }
-                  >
-                    {totalPaid === totalPrice
-                      ? "Payment matches total"
-                      : totalPaid < totalPrice
-                      ? `Remaining to pay: ₹${(totalPrice - totalPaid).toFixed(
-                          2
-                        )}`
-                      : `Overpayment: ₹${(totalPaid - totalPrice).toFixed(2)}`}
-                  </p>
-                )}
+              <h3 className="text-lg font-semibold mb-2">Payment</h3>
+              <div className="p-4 bg-gray-100 rounded text-center text-gray-700">
+                Payment will be processed as full cash by default.
               </div>
             </div>
 
-            {localPayments.length > 0 && (
+            <div className="flex justify-end mt-8">
               <button
                 id="proceed-to-payment-button"
                 onClick={createSale}
-                disabled={
-                  !isCartValid() ||
-                  (selectedCustomer === null && totalPaid !== totalPrice)
-                }
-                className="w-full px-4 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:text-gray-500"
+                disabled={!isCartValid()}
+                className={`px-6 py-2 rounded-lg transition-colors duration-150 flex items-center justify-center w-full sm:w-auto ${
+                  isCartValid()
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
               >
-                Proceed to Payment
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  ></path>
+                </svg>
+                Proceed
               </button>
-            )}
-
-            {payments.some(
-              (p) => p.status === "pending" && p.method === "upi"
-            ) && (
-              <div className="mt-6">
-                <h4 className="text-lg font-semibold mb-2">
-                  Confirm UPI Payments
-                </h4>
-                {payments
-                  .filter((p) => p.status === "pending" && p.method === "upi")
-                  .map((payment) => (
-                    <div key={payment.id} className="text-center mb-4">
-                      <p>Amount: ₹{payment.amount.toFixed(2)}</p>
-                      <img
-                        src={payment.qr}
-                        alt="QR Code"
-                        className="mx-auto h-40 w-40 border-2 border-gray-300 rounded-lg"
-                      />
-                      <button
-                        onClick={() => confirmUPIPayment(payment.id!)}
-                        className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                      >
-                        Payment Received
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}

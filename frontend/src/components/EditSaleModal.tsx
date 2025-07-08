@@ -11,6 +11,7 @@ interface Product {
   wholeSalePrice?: number;
   stock: number;
   unitType: "pcs" | "kg";
+  barcode?: string;
 }
 
 interface CartItem {
@@ -116,7 +117,7 @@ const EditSaleModal: React.FC<EditSaleModalProps> = ({
     setPayments(
       sale.payments.map((p) => ({
         id: p.id,
-        method: p.paymentMethod,
+        method: p.method,
         amount: p.amount,
         status: p.status || "completed",
         qr: p.qr,
@@ -249,23 +250,14 @@ const EditSaleModal: React.FC<EditSaleModalProps> = ({
       toast.error("Cart cannot be empty");
       return;
     }
-    if (totalPaid < totalPrice) {
-      toast.error("Received amount cannot be less than total amount");
-      return;
-    }
-
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const updatedPayments = [{ method: 'cash', amount: total }];
     try {
       const updatedItems = cart.map((item) => ({
         productId: item.id,
         quantity: item.quantity,
         price: item.price,
       }));
-
-      const updatedPayments = payments.map((p) => ({
-        method: p.method,
-        amount: p.amount,
-      }));
-
       const response = await axios.put(
         `${baseUrl}/api/sales/${sale.id}`,
         {
@@ -273,12 +265,11 @@ const EditSaleModal: React.FC<EditSaleModalProps> = ({
           payments: updatedPayments,
           customerId: selectedCustomer?.id || null,
           saleType,
-          ReceivedAmount: totalPaid,
+          ReceivedAmount: total,
           saleDate,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       if (response.status === 200) {
         toast.success("Sale updated successfully");
         onUpdate();
@@ -406,6 +397,19 @@ const EditSaleModal: React.FC<EditSaleModalProps> = ({
     ? paymentOptions
     : paymentOptions.filter((option) => option.method !== "debt");
 
+  useEffect(() => {
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    if (cart.length > 0 && total > 0) {
+      setPayments([{ method: 'cash', amount: total, status: 'completed' }]);
+    } else {
+      setPayments([]);
+    }
+    // eslint-disable-next-line
+  }, [cart]);
+
+  // Calculate original total price
+  const originalTotalPrice = sale.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -513,14 +517,14 @@ const EditSaleModal: React.FC<EditSaleModalProps> = ({
                   <div className="col-span-3 text-center flex justify-center items-center">
                     <button
                       onClick={() => decreaseQuantity(item.id)}
-                      className="w-6 h-6 bg-gray-200 rounded-l hover:bg-gray-300"
+                      className="w-6 h-6 p-0 bg-gray-200 rounded-l hover:bg-gray-300"
                     >
                       -
                     </button>
                     <span className="w-12 text-center">{item.quantity}</span>
                     <button
                       onClick={() => increaseQuantity(item.id)}
-                      className="w-6 h-6 bg-gray-200 rounded-r hover:bg-gray-300"
+                      className="w-6 h-6 p-0 bg-gray-200 rounded-r hover:bg-gray-300"
                     >
                       +
                     </button>
@@ -540,104 +544,19 @@ const EditSaleModal: React.FC<EditSaleModalProps> = ({
           )}
         </div>
 
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold mb-2">Payments</h3>
-          {payments.map((payment, index) => (
-            <div key={index} className="flex items-center space-x-2 mb-2">
-              <span className="capitalize">{payment.method}</span>
-              <span>₹{payment.amount.toFixed(2)}</span>
-              <button
-                onClick={() => removePayment(index)}
-                className="text-red-500 hover:text-red-700"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <div className="mt-4 border-t pt-4">
-            <h4 className="text-md font-semibold mb-2">Add Payment</h4>
-            <div className="flex items-center space-x-2">
-              <select
-                value={newPaymentMethod}
-                onChange={(e) =>
-                  setNewPaymentMethod(
-                    e.target.value as "cash" | "card" | "upi" | "debt"
-                  )
-                }
-                className="border rounded px-2 py-1"
-              >
-                {availablePaymentOptions.map((option) => (
-                  <option key={option.method} value={option.method}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                value={newPaymentAmount}
-                onChange={(e) =>
-                  setNewPaymentAmount(parseFloat(e.target.value) || 0)
-                }
-                className="border rounded px-2 py-1 w-24"
-                min="0"
-                step="0.01"
-              />
-              {newPaymentMethod === "upi" ? (
-                <button
-                  onClick={addPayment}
-                  className="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Generate QR
-                </button>
-              ) : (
-                <button
-                  onClick={addPayment}
-                  className="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Add
-                </button>
-              )}
-            </div>
-            {pendingUPIPayment && (
-              <div className="mt-4 text-center">
-                <p>UPI Payment: ₹{pendingUPIPayment.amount.toFixed(2)}</p>
-                <img
-                  src={pendingUPIPayment.qr}
-                  alt="UPI QR Code"
-                  className="h-40 w-40 mx-auto mt-2 border-2 border-gray-300 rounded-lg"
-                />
-                <div className="mt-2 flex justify-center space-x-2">
-                  <button
-                    onClick={confirmUPIPayment}
-                    className="px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                  >
-                    Payment Received
-                  </button>
-                  <button
-                    onClick={() => setPendingUPIPayment(null)}
-                    className="px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="mt-4">
-            <p>Total Price: ₹{totalPrice.toFixed(2)}</p>
-            <p>Total Paid: ₹{totalPaid.toFixed(2)}</p>
-            <p
-              className={
-                totalPaid === totalPrice ? "text-green-500" : "text-red-500"
-              }
-            >
-              {totalPaid === totalPrice
-                ? "Payment matches total"
-                : `Payment does not match total: need additional ₹${(
-                    totalPrice - totalPaid
-                  ).toFixed(2)}`}
-            </p>
-          </div>
+        <div className="mb-4 flex items-center gap-4 justify-end">
+          {(() => {
+            const currentTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const isEdited = currentTotal !== originalTotalPrice;
+            return isEdited ? (
+              <>
+                <span className="text-lg text-gray-500 line-through">₹{originalTotalPrice.toFixed(2)}</span>
+                <span className="text-lg font-bold text-green-700">₹{currentTotal.toFixed(2)}</span>
+              </>
+            ) : (
+              <span className="text-lg font-bold text-gray-800">₹{originalTotalPrice.toFixed(2)}</span>
+            );
+          })()}
         </div>
 
         <div className="flex justify-end space-x-2">
