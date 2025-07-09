@@ -11,6 +11,7 @@ import cardsClipart from "../assets/cards_clipart.png";
 import { TrendingDown } from "lucide-react";
 import customer from "../../../backend/models/customer";
 import { useAuth } from "../context/AuthContext";
+import throttle from '../utils/throttle';
 
 interface Product {
   id: number;
@@ -907,6 +908,9 @@ const POSInterface: React.FC = () => {
     // eslint-disable-next-line
   }, [cart, customTotalPrice]);
 
+  // Throttle the createSale handler
+  const throttledCreateSale = throttle(createSale, 2000);
+
   return (
     <div className="sm:px-4 mt-10 max-h-screen flex flex-col space-y-4 overflow-hidden">
       <div
@@ -1759,7 +1763,7 @@ const POSInterface: React.FC = () => {
             <div className="flex justify-end mt-8">
               <button
                 id="proceed-to-payment-button"
-                onClick={createSale}
+                onClick={throttledCreateSale}
                 disabled={!isCartValid()}
                 className={`px-6 py-2 rounded-lg transition-colors duration-150 flex items-center justify-center w-full sm:w-auto ${
                   isCartValid()
